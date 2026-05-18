@@ -19,10 +19,19 @@ class ContactsScreen extends StatelessWidget {
           return const EmptyWidget(message: 'No contacts yet.\nTap + to add one.');
         }
 
+        final contacts = provider.searchedContacts;
+
+        if (contacts.isEmpty) {
+          return const EmptyWidget(
+            message: 'No matching contacts found.',
+            icon: Icons.search_off,
+          );
+        }
+
         return ListView.builder(
-          itemCount: provider.contacts.length,
+          itemCount: contacts.length,
           itemBuilder: (context, index) {
-            final contact = provider.contacts[index];
+            final contact = contacts[index];
             return ContactTile(contact: contact);
           },
         );

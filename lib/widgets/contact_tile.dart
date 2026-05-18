@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import '../models/contact_model.dart';
 import '../utils/constants.dart';
 import '../screens/contact_detail_screen.dart';
@@ -7,6 +9,19 @@ class ContactTile extends StatelessWidget {
   final Contact contact;
 
   const ContactTile({Key? key, required this.contact}) : super(key: key);
+
+  Future<void> _makeDirectCall(String phoneNumber) async {
+    final bool? res = await FlutterPhoneDirectCaller.callNumber(phoneNumber);
+    if (res == null || !res) {
+      final Uri launchUri = Uri(
+        scheme: 'tel',
+        path: phoneNumber,
+      );
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +35,18 @@ class ContactTile extends StatelessWidget {
       ),
       title: Text(contact.name, style: AppTextStyles.title),
       subtitle: Text(contact.phone, style: AppTextStyles.subtitle),
-      trailing: contact.isFavorite 
-          ? const Icon(Icons.star, color: Colors.amber)
-          : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (contact.isFavorite)
+            const Icon(Icons.star, color: Colors.amber),
+          const SizedBox(width: 8),
+          IconButton(
+            icon: const Icon(Icons.call, color: Colors.green),
+            onPressed: () => _makeDirectCall(contact.phone),
+          ),
+        ],
+      ),
       onTap: () {
         Navigator.push(
           context,

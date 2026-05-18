@@ -5,10 +5,42 @@ import '../services/database_service.dart';
 class ContactProvider extends ChangeNotifier {
   List<Contact> _contacts = [];
   bool _isLoading = false;
+  String _searchQuery = '';
 
   List<Contact> get contacts => _contacts;
   List<Contact> get favoriteContacts => _contacts.where((c) => c.isFavorite).toList();
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
+
+  List<Contact> get searchedContacts {
+    if (_searchQuery.isEmpty) {
+      return _contacts;
+    }
+    final query = _searchQuery.toLowerCase();
+    return _contacts.where((c) {
+      return c.name.toLowerCase().contains(query) ||
+          c.phone.contains(_searchQuery) ||
+          c.email.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  List<Contact> get searchedFavoriteContacts {
+    final favorites = favoriteContacts;
+    if (_searchQuery.isEmpty) {
+      return favorites;
+    }
+    final query = _searchQuery.toLowerCase();
+    return favorites.where((c) {
+      return c.name.toLowerCase().contains(query) ||
+          c.phone.contains(_searchQuery) ||
+          c.email.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
+  }
 
   Future<void> fetchContacts() async {
     _isLoading = true;

@@ -14,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  late TextEditingController _searchController;
 
   final List<Widget> _screens = [
     const ContactsScreen(),
@@ -23,6 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(() {
+      setState(() {});
+    });
     // Fetch contacts when home screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<ContactProvider>(context, listen: false).fetchContacts();
@@ -30,10 +35,59 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ContactProvider>(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_currentIndex == 0 ? 'Contacts' : 'Favorites'),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(80),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: _currentIndex == 0 ? 'Search contacts' : 'Search favorites',
+                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, color: Colors.grey),
+                            onPressed: () {
+                              _searchController.clear();
+                              provider.setSearchQuery('');
+                            },
+                          )
+                        : null,
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onChanged: (value) {
+                    provider.setSearchQuery(value);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
       body: _screens[_currentIndex],
       floatingActionButton: FloatingActionButton(
@@ -52,6 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
         onDestinationSelected: (index) {
           setState(() {
             _currentIndex = index;
+            _searchController.clear();
+            provider.setSearchQuery('');
           });
         },
         destinations: const [

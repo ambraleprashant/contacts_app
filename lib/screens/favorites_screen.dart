@@ -15,12 +15,19 @@ class FavoritesScreen extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final favorites = provider.favoriteContacts;
-
-        if (favorites.isEmpty) {
+        if (provider.favoriteContacts.isEmpty) {
           return const EmptyWidget(
             message: 'No favorite contacts yet.',
             icon: Icons.star_border,
+          );
+        }
+
+        final favorites = provider.searchedFavoriteContacts;
+
+        if (favorites.isEmpty) {
+          return const EmptyWidget(
+            message: 'No matching favorites found.',
+            icon: Icons.search_off,
           );
         }
 

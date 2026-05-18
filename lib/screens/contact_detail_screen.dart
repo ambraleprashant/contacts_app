@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import '../models/contact_model.dart';
 import '../providers/contact_provider.dart';
 import '../utils/constants.dart';
@@ -12,14 +13,18 @@ class ContactDetailScreen extends StatelessWidget {
   const ContactDetailScreen({Key? key, required this.contact}) : super(key: key);
 
   Future<void> _makePhoneCall(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunchUrl(launchUri)) {
-      await launchUrl(launchUri);
-    } else {
-      debugPrint('Could not launch $phoneNumber');
+    final bool? res = await FlutterPhoneDirectCaller.callNumber(phoneNumber);
+    if (res == null || !res) {
+      debugPrint('Direct call failed, trying fallback url launcher...');
+      final Uri launchUri = Uri(
+        scheme: 'tel',
+        path: phoneNumber,
+      );
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        debugPrint('Could not launch $phoneNumber');
+      }
     }
   }
 
